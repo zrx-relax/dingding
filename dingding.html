@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园周务 · 附件上传与审核</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #eef2f6;
+            margin: 0;
+            min-height: 100vh;
+            padding: 1.8rem 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+        .app-container {
+            max-width: 1600px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #003057;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin: 0 0 0.25rem 0;
+        }
+        .subhead {
+            color: #1f4d77;
+            margin-bottom: 2rem;
+            padding-left: 1.2rem;
+            border-left: 5px solid #2a73b3;
+            background: #e1ecf7;
+            border-radius: 0 30px 30px 0;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        .role-badge {
+            background: #1f4d77;
+            color: white;
+            padding: 0.3rem 1.5rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2.2fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* ---------- 左侧 部门卡片 ---------- */
+        .dept-card {
+            background: white;
+            border-radius: 32px;
+            padding: 1.8rem 1.5rem;
+            box-shadow: 0 20px 35px rgba(0, 30, 60, 0.08);
+            border: 1px solid rgba(255,255,255,0.6);
+            backdrop-filter: blur(2px);
+        }
+        .dept-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #cbddec;
+            padding-bottom: 1.2rem;
+        }
+        .dept-btn {
+            background: #eaf1fa;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #1a4a73;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.93rem;
+            border: 1px solid transparent;
+        }
+        .dept-btn.active {
+            background: #1f6191;
+            color: white;
+            box-shadow: 0 8px 16px rgba(20, 80, 130, 0.3);
+            border-color: #0b3b5c;
+        }
+        .upload-panel {
+            background: #f6fafd;
+            border-radius: 24px;
+            padding: 1.6rem 1.3rem;
+            border: 2px dashed #9fc1dd;
+            margin-bottom: 2rem;
+        }
+        .upload-panel h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #0f4a75;
+            margin: 0 0 1.2rem 0;
+            font-size: 1.2rem;
+        }
+        .form-row {
+            margin-bottom: 1.1rem;
+        }
+        .form-row label {
+            display: block;
+            font-weight: 500;
+            color: #1d4e76;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+        .form-row input, .form-row textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #b9d1e7;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            background: white;
+        }
+        .form-row input:focus, .form-row textarea:focus {
+            outline: none;
+            border-color: #3085c2;
+            box-shadow: 0 0 0 4px rgba(48,133,194,0.15);
+        }
+        /* 附件上传样式 */
+        .file-upload {
+            border: 2px dashed #9fc1dd;
+            background: #f0f7ff;
+            border-radius: 20px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .file-upload label {
+            font-weight: 500;
+            color: #1d4e76;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .file-info {
+            font-size: 0.8rem;
+            color: #4a6f8c;
+            margin-top: 0.3rem;
+        }
+        .time-location {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+        .btn-primary {
+            background: #1d6ca1;
+            color: white;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            border-bottom: 4px solid #0f4062;
+            transition: 0.1s;
+        }
+        .btn-primary:hover {
+            background: #267bb8;
+            transform: translateY(-2px);
+            border-bottom-width: 5px;
+        }
+        .preview-area {
+            background: #f2f8ff;
+            border-radius: 24px;
+            padding: 1.2rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .preview-item {
+            background: white;
+            border-radius: 16px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.8rem;
+            border-left: 6px solid #3478a8;
+            box-shadow: 0 3px 10px #dae5f0;
+        }
+        .attachment-link {
+            display: inline-block;
+            margin-top: 0.3rem;
+            font-size: 0.8rem;
+            background: #e3efff;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            color: #1f6191;
+            text-decoration: none;
+        }
+        .attachment-link:hover {
+            background: #c7e0fa;
+        }
+
+        /* ---------- 右侧主表面板 + 办公室后台 ---------- */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+        .master-card {
+            background: white;
+            border-radius: 32px;
+            padding: 1.8rem 1.5rem;
+            box-shadow: 0 20px 35px rgba(0, 30, 60, 0.08);
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .table-header h2 {
+            margin: 0;
+            color: #00315a;
+            font-weight: 650;
+        }
+        .week-badge {
+            background: #d3e6f7;
+            border-radius: 40px;
+            padding: 0.3rem 1.3rem;
+            color: #135482;
+            font-weight: 500;
+        }
+        .week-nav button {
+            background: white;
+            border: 1px solid #b2ceea;
+            border-radius: 30px;
+            padding: 0.4rem 1.2rem;
+            margin: 0 0.2rem;
+            cursor: pointer;
+        }
+        .master-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f8fcff;
+            border-radius: 24px;
+            overflow: hidden;
+        }
+        .master-table th {
+            background: #12456b;
+            color: white;
+            padding: 1rem 0.8rem;
+            text-align: left;
+        }
+        .master-table td {
+            padding: 1rem 0.8rem;
+            border-bottom: 1px solid #d2e5f5;
+            background: white;
+        }
+        .dept-tag {
+            background: #e3f0fc;
+            color: #11507c;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+        .event-block {
+            margin-bottom: 0.8rem;
+            border-bottom: 1px dashed #bbd3ec;
+            padding-bottom: 0.6rem;
+        }
+        .event-block:last-child {
+            border-bottom: none;
+        }
+        .attachment-badge {
+            background: #c7e0fa;
+            border-radius: 30px;
+            padding: 0.1rem 0.8rem;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            margin-left: 0.5rem;
+        }
+        .attachment-badge a {
+            color: #12456b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .attachment-badge a:hover {
+            text-decoration: underline;
+        }
+
+        /* 后台编辑面板 */
+        .admin-panel {
+            background: #ffffffd9;
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            padding: 1.5rem 1.5rem 1.8rem 1.5rem;
+            border: 2px solid #b8d2ed;
+            box-shadow: 0 12px 28px rgba(0,50,80,0.15);
+        }
+        .admin-panel h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #003e6b;
+            margin: 0 0 1.2rem 0;
+            font-size: 1.4rem;
+        }
+        .admin-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+            align-items: center;
+        }
+        .admin-select {
+            background: white;
+            border: 1.5px solid #4583b3;
+            border-radius: 40px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            color: #023459;
+        }
+        .admin-btn {
+            background: white;
+            border: 1.5px solid #2a6d9c;
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            color: #1e5a83;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .admin-btn:hover {
+            background: #e3f0fc;
+        }
+        .admin-btn.danger {
+            border-color: #b55a5a;
+            color: #a13d3d;
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f3f9ff;
+            border-radius: 20px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        .admin-table th {
+            background: #4179a3;
+            color: white;
+            padding: 0.7rem 0.5rem;
+        }
+        .admin-table td {
+            padding: 0.7rem 0.5rem;
+            border-bottom: 1px solid #c2daee;
+            background: #fdfdfd;
+        }
+        .admin-table input {
+            width: 100%;
+            padding: 0.4rem 0.5rem;
+            border: 1px solid #aac5e0;
+            border-radius: 30px;
+        }
+        .save-cell {
+            background: #2a7faa;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 0.3rem 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .delete-cell {
+            background: #c06060;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 0.3rem 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .view-attachment {
+            background: #6f8ba5;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .empty-admin {
+            color: #6f8ba5;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        .permission-message {
+            background: #f0f7ff;
+            border-radius: 40px;
+            padding: 1.5rem;
+            text-align: center;
+            color: #2a4e72;
+            font-weight: 500;
+            border: 2px dashed #bbd2ec;
+        }
+        .current-role-indicator {
+            background: #c4daf0;
+            border-radius: 40px;
+            padding: 0.3rem 1.2rem;
+            font-weight: 600;
+            color: #022b49;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <header style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+            <h1>📋 校园周事务 · 附件审核版</h1>
+            <span class="role-badge" id="globalRoleDisplay">当前部门：办公室（可后台+审核附件）</span>
+        </div>
+        <div style="display: flex; gap: 0.8rem;">
+            <span class="current-role-indicator">模拟登录：</span>
+            <select id="roleSwitcher" style="padding:0.4rem 1rem; border-radius:30px; border:1px solid #1f6191;">
+                <option value="办公室" selected>办公室 (可后台+审核附件)</option>
+                <option value="教务处">教务处 (只读)</option>
+                <option value="学生处">学生处 (只读)</option>
+                <option value="总务处">总务处 (只读)</option>
+                <option value="安稳办">安稳办 (只读)</option>
+                <option value="智创中心">智创中心 (只读)</option>
+            </select>
+        </div>
+    </header>
+    <div class="subhead">
+        办公室专属后台权限：只有办公室可以修改统一表格并打开附件审核；其他部门只能查看和上传自己部门事项。<br>
+        <strong style="background:#fff1c0; padding:0.2rem 1rem; border-radius:30px;">⏱️ 时间格式：周几 开始时间-结束时间 | 📎 支持上传附件（办公室可点开审核）</strong>
+    </div>
+
+    <div class="dashboard">
+        <!-- 左侧 部门卡片 -->
+        <div class="dept-card">
+            <div class="dept-tabs" id="deptTabs">
+                <button class="dept-btn active" data-dept="教务处">📚 教务处</button>
+                <button class="dept-btn" data-dept="学生处">🎓 学生处</button>
+                <button class="dept-btn" data-dept="总务处">🏗️ 总务处</button>
+                <button class="dept-btn" data-dept="办公室">📁 办公室</button>
+                <button class="dept-btn" data-dept="安稳办">🛡️ 安稳办</button>
+                <button class="dept-btn" data-dept="智创中心">💡 智创中心</button>
+            </div>
+
+            <!-- 上传表单 (所有部门可上传，增加附件) -->
+            <div class="upload-panel">
+                <h3><span id="currentDeptSpan">教务处</span> · 新增事项</h3>
+                <div class="form-row">
+                    <label>📌 事项名称</label>
+                    <input type="text" id="titleInput" placeholder="例如：行政协调会">
+                </div>
+                <div class="time-location">
+                    <div class="form-row">
+                        <label>⏱️ 时间 (周几 开始-结束)</label>
+                        <input type="text" id="timeInput" placeholder="周一 09:00-11:00">
+                    </div>
+                    <div class="form-row">
+                        <label>📍 地点</label>
+                        <input type="text" id="locInput" placeholder="办公楼203">
+                    </div>
+                </div>
+                <!-- 附件上传框 -->
+                <div class="file-upload">
+                    <label>📎 附件 (可选)</label>
+                    <input type="file" id="attachmentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.txt">
+                    <div class="file-info" id="fileInfo">未选择文件</div>
+                </div>
+                <div class="form-row">
+                    <label>📝 备注</label>
+                    <textarea id="descInput" placeholder="可填写出席领导等"></textarea>
+                </div>
+                <button class="btn-primary" id="addEventBtn">➕ 添加至本部门</button>
+            </div>
+
+            <!-- 当前部门预览 -->
+            <div style="font-weight: 600; color: #1c5179; margin-bottom: 0.7rem;">📌 当前部门预览</div>
+            <div class="preview-area" id="deptPreview">
+                <div class="empty-preview" style="color:#839eb8; text-align:center;">暂无事项</div>
+            </div>
+        </div>
+
+        <!-- 右侧 主表面板 + 后台编辑 -->
+        <div class="right-panel">
+            <!-- 总表卡片 (所有人可见，但附件链接只有办公室可点？根据角色显示) -->
+            <div class="master-card">
+                <div class="table-header">
+                    <h2>📅 全校总表 · <span id="weekDisplay">第15周</span></h2>
+                    <div class="week-nav">
+                        <button id="prevWeekBtn">← 前一周</button>
+                        <button id="nextWeekBtn">后一周 →</button>
+                    </div>
+                </div>
+                <div id="masterTableContainer">
+                    <!-- 动态渲染总表 -->
+                </div>
+            </div>
+
+            <!-- 后台编辑面板 (仅办公室可见，附件审核功能在内) -->
+            <div id="adminPanelContainer"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const DEPARTMENTS = ['教务处', '学生处', '总务处', '办公室', '安稳办', '智创中心'];
+        
+        // 全局事件池，每个事件包含附件信息 { fileName, fileData, fileType }
+        let allEvents = [];
+
+        let currentDept = '教务处';
+        let currentWeek = 15;
+        let currentRole = '办公室';
+
+        // DOM
+        const deptBtns = document.querySelectorAll('.dept-btn');
+        const currentDeptSpan = document.getElementById('currentDeptSpan');
+        const titleInput = document.getElementById('titleInput');
+        const timeInput = document.getElementById('timeInput');
+        const locInput = document.getElementById('locInput');
+        const descInput = document.getElementById('descInput');
+        const attachmentInput = document.getElementById('attachmentInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const addBtn = document.getElementById('addEventBtn');
+        const deptPreview = document.getElementById('deptPreview');
+        const masterContainer = document.getElementById('masterTableContainer');
+        const weekDisplay = document.getElementById('weekDisplay');
+        const prevBtn = document.getElementById('prevWeekBtn');
+        const nextBtn = document.getElementById('nextWeekBtn');
+        const roleSwitcher = document.getElementById('roleSwitcher');
+        const globalRoleDisplay = document.getElementById('globalRoleDisplay');
+        const adminPanelContainer = document.getElementById('adminPanelContainer');
+
+        // 监听附件选择
+        attachmentInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileInfo.innerText = `已选择: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+            } else {
+                fileInfo.innerText = '未选择文件';
+            }
+        });
+
+        // 将文件转为Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // 更新周显示
+        function updateWeekUI() {
+            weekDisplay.innerText = `第${currentWeek}周`;
+        }
+
+        function getCurrentWeekEvents() {
+            return allEvents.filter(ev => ev.week === currentWeek);
+        }
+
+        function groupByDept(events) {
+            const map = new Map();
+            DEPARTMENTS.forEach(d => map.set(d, []));
+            events.forEach(ev => {
+                if (map.has(ev.dept)) map.get(ev.dept).push(ev);
+                else map.set(ev.dept, [ev]);
+            });
+            return map;
+        }
+
+        // 渲染左侧预览
+        function renderDeptPreview() {
+            const filtered = allEvents.filter(ev => ev.dept === currentDept).slice(-8).reverse();
+            if (!filtered.length) {
+                deptPreview.innerHTML = `<div class="empty-preview" style="color:#839eb8;">暂无事项</div>`;
+                return;
+            }
+            let html = '';
+            filtered.forEach(ev => {
+                let attachmentHtml = '';
+                if (ev.fileName) {
+                    attachmentHtml = `<div><span class="attachment-link">📎 ${ev.fileName}</span></div>`;
+                }
+                html += `<div class="preview-item">
+                    <strong>${ev.title}</strong>  <span style="background:#e3efff; padding:2px 8px; border-radius:30px; font-size:0.7rem;">第${ev.week}周</span><br>
+                    <span style="color:#2d5a7a;">🕒 ${ev.time} · ${ev.location}</span>
+                    ${ev.desc ? `<br><small>📝 ${ev.desc}</small>` : ''}
+                    ${attachmentHtml}
+                </div>`;
+            });
+            deptPreview.innerHTML = html;
+        }
+
+        // 渲染总表（附件链接根据角色决定是否可点）
+        function renderMasterTable() {
+            const weekEvents = getCurrentWeekEvents();
+            if (weekEvents.length === 0) {
+                masterContainer.innerHTML = `<div class="empty-table" style="padding:3rem; text-align:center; background:#f6faff; border-radius:30px;">📭 第${currentWeek}周暂无事项</div>`;
+                return;
+            }
+            const grouped = groupByDept(weekEvents);
+            let tableHtml = `<table class="master-table"><thead><tr><th>部门</th><th>事项及附件</th></tr></thead><tbody>`;
+            for (let dept of DEPARTMENTS) {
+                const evs = grouped.get(dept) || [];
+                if (evs.length === 0) continue;
+                let evHtml = '';
+                evs.forEach(ev => {
+                    let attachmentDisplay = '';
+                    if (ev.fileName && ev.fileData) {
+                        if (currentRole === '办公室') {
+                            // 办公室可点击审核
+                            attachmentDisplay = `<span class="attachment-badge">📎 <a href="${ev.fileData}" target="_blank" title="点击审核附件">${ev.fileName}</a></span>`;
+                        } else {
+                            // 其他部门只显示文件名，不可点击
+                            attachmentDisplay = `<span class="attachment-badge">📎 ${ev.fileName} (仅办公室可审)</span>`;
+                        }
+                    }
+                    evHtml += `<div class="event-block">
+                        <div style="font-weight:600;">📌 ${ev.title} ${attachmentDisplay}</div>
+                        <div style="display:flex; gap:1rem; font-size:0.85rem; color:#346792; flex-wrap:wrap;">
+                            <span>🕒 ${ev.time}</span><span>📍 ${ev.location}</span>
+                            ${ev.desc ? `<span>📋 ${ev.desc}</span>` : ''}
+                        </div>
+                    </div>`;
+                });
+                tableHtml += `<tr><td style="width:110px;"><span class="dept-tag">${dept}</span></td><td>${evHtml}</td></tr>`;
+            }
+            tableHtml += '</tbody></table>';
+            masterContainer.innerHTML = tableHtml;
+        }
+
+        // 添加新事件（支持附件）
+        async function addEvent() {
+            const title = titleInput.value.trim();
+            const time = timeInput.value.trim();
+            const loc = locInput.value.trim();
+            if (!title || !time || !loc) {
+                alert('请填写事项、时间和地点');
+                return;
+            }
+
+            let attachmentData = null;
+            let fileName = '';
+            let fileType = '';
+            
+            if (attachmentInput.files.length > 0) {
+                const file = attachmentInput.files[0];
+                fileName = file.name;
+                fileType = file.type;
+                attachmentData = await fileToBase64(file); // 存储Base64
+            }
+
+            const newEv = {
+                id: Date.now() + Math.random(),
+                dept: currentDept,
+                title: title,
+                time: time,
+                location: loc,
+                desc: descInput.value.trim(),
+                week: currentWeek,
+                fileName: fileName,
+                fileData: attachmentData,
+                fileType: fileType
+            };
+            allEvents.push(newEv);
+            
+            // 清空表单
+            titleInput.value = ''; timeInput.value = ''; locInput.value = ''; descInput.value = '';
+            attachmentInput.value = ''; fileInfo.innerText = '未选择文件';
+            
+            renderDeptPreview();
+            renderMasterTable();
+            renderAdminPanelByRole();
+        }
+
+        function setActiveDept(dept) {
+            currentDept = dept;
+            currentDeptSpan.innerText = dept;
+            deptBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.dept === dept);
+            });
+            renderDeptPreview();
+        }
+
+        // 后台编辑表格 (办公室专用，含附件查看)
+        function renderAdminTable() {
+            if (currentRole !== '办公室') return;
+            const filterDept = document.getElementById('adminDeptFilter')?.value || '所有部门';
+            let events = allEvents.filter(ev => ev.week === currentWeek);
+            if (filterDept !== '所有部门') {
+                events = events.filter(ev => ev.dept === filterDept);
+            }
+            const tbody = document.getElementById('adminTbody');
+            if (!tbody) return;
+            if (events.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-admin">暂无匹配事项</td></tr>`;
+                return;
+            }
+            let rows = '';
+            events.forEach(ev => {
+                const attachmentCell = ev.fileName ? 
+                    `<a href="${ev.fileData}" target="_blank" style="color:#1f6191; font-weight:500;" title="点击审核附件">📎 ${ev.fileName}</a>` : 
+                    '无';
+                
+                rows += `<tr data-id="${ev.id}">
+                    <td><input type="text" value="${ev.dept}" class="admin-dept" style="width:85px;" disabled></td>
+                    <td><input type="text" value="${ev.title.replace(/"/g, '&quot;')}" class="admin-title" placeholder="事项"></td>
+                    <td><input type="text" value="${ev.time}" class="admin-time" placeholder="周一 09:00-11:00"></td>
+                    <td><input type="text" value="${ev.location}" class="admin-loc"></td>
+                    <td><input type="text" value="${ev.desc || ''}" class="admin-desc"></td>
+                    <td>${attachmentCell}</td>
+                    <td style="display:flex; gap:4px;">
+                        <button class="save-cell" data-id="${ev.id}">💾 保存</button>
+                        <button class="delete-cell" data-id="${ev.id}">🗑️ 删</button>
+                    </td>
+                </tr>`;
+            });
+            tbody.innerHTML = rows;
+
+            document.querySelectorAll('.save-cell').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (currentRole !== '办公室') return;
+                    const id = parseFloat(btn.dataset.id);
+                    const row = btn.closest('tr');
+                    const titleInp = row.querySelector('.admin-title').value.trim();
+                    const timeInp = row.querySelector('.admin-time').value.trim();
+                    const locInp = row.querySelector('.admin-loc').value.trim();
+                    const descInp = row.querySelector('.admin-desc').value.trim();
+                    if (!titleInp || !timeInp || !locInp) { alert('事项,时间,地点不能为空'); return; }
+                    
+                    const event = allEvents.find(ev => ev.id === id);
+                    if (event) {
+                        event.title = titleInp;
+                        event.time = timeInp;
+                        event.location = locInp;
+                        event.desc = descInp;
+                        renderMasterTable();
+                        renderDeptPreview();
+                        renderAdminTable(); 
+                    }
+                });
+            });
+            document.querySelectorAll('.delete-cell').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (currentRole !== '办公室') return;
+                    const id = parseFloat(btn.dataset.id);
+                    allEvents = allEvents.filter(ev => ev.id !== id);
+                    renderMasterTable();
+                    renderDeptPreview();
+                    renderAdminTable();
+                });
+            });
+        }
+
+        function batchDeleteCurrent() {
+            if (currentRole !== '办公室') return;
+            const filterDept = document.getElementById('adminDeptFilter')?.value || '所有部门';
+            let toDelete = allEvents.filter(ev => ev.week === currentWeek);
+            if (filterDept !== '所有部门') {
+                toDelete = toDelete.filter(ev => ev.dept === filterDept);
+            }
+            if (toDelete.length === 0) return;
+            const idsToDelete = new Set(toDelete.map(ev => ev.id));
+            allEvents = allEvents.filter(ev => !idsToDelete.has(ev.id));
+            renderMasterTable();
+            renderDeptPreview();
+            renderAdminTable();
+        }
+
+        // 根据角色渲染后台面板
+        function renderAdminPanelByRole() {
+            if (currentRole === '办公室') {
+                adminPanelContainer.innerHTML = `
+                    <div class="admin-panel">
+                        <h3>⚙️ 办公室专属 · 附件审核与编辑</h3>
+                        <div class="admin-toolbar">
+                            <span style="font-weight:500;">当前周次:</span>
+                            <span class="week-badge" id="adminWeekBadge">${currentWeek}</span>
+                            <select id="adminDeptFilter" class="admin-select">
+                                <option value="所有部门">所有部门</option>
+                                ${DEPARTMENTS.map(d => `<option value="${d}">${d}</option>`).join('')}
+                            </select>
+                            <button class="admin-btn" id="refreshAdminBtn">⟳ 刷新列表</button>
+                            <button class="admin-btn danger" id="batchDeleteBtn">🗑️ 删除全部(当前周/筛选)</button>
+                        </div>
+                        <div id="adminGrid">
+                            <table class="admin-table">
+                                <thead><tr><th>部门</th><th>事项</th><th>时间</th><th>地点</th><th>备注</th><th>附件(点击审核)</th><th>操作</th></tr></thead>
+                                <tbody id="adminTbody"></tbody>
+                            </table>
+                        </div>
+                        <p style="font-size:0.8rem; color:#3f6990; margin-top:1rem;">💡 办公室可点击附件链接打开审核，其他部门无权查看附件内容。</p>
+                    </div>
+                `;
+                document.getElementById('refreshAdminBtn')?.addEventListener('click', renderAdminTable);
+                document.getElementById('batchDeleteBtn')?.addEventListener('click', batchDeleteCurrent);
+                document.getElementById('adminDeptFilter')?.addEventListener('change', renderAdminTable);
+                renderAdminTable();
+            } else {
+                adminPanelContainer.innerHTML = `
+                    <div class="admin-panel permission-message">
+                        <span style="font-size:1.4rem;">🔒 权限提示</span><br>
+                        您当前以 <strong>${currentRole}</strong> 身份登录。只有 <strong>办公室</strong> 可以修改统一表格并审核附件。<br>
+                        附件内容仅办公室可见。
+                    </div>
+                `;
+            }
+        }
+
+        function goPrev() { if (currentWeek > 1) { currentWeek--; updateUI(); } }
+        function goNext() { currentWeek++; updateUI(); }
+        function updateUI() {
+            updateWeekUI();
+            renderMasterTable();
+            renderDeptPreview();
+            renderAdminPanelByRole();
+        }
+
+        // 示例数据（含附件示例，但Base64太大，示例不加真实文件，仅展示文件名）
+        function addSamples() {
+            const samples = [
+                { dept:'教务处', title:'教学例会', time:'周一 10:00-11:30', location:'教务处会议室', desc:'各科长', week:15, fileName:'例会材料.pdf', fileData:'#' },
+                { dept:'学生处', title:'奖助评审', time:'周二 14:00-16:00', location:'活动中心', desc:'', week:15, fileName:'评审名单.xlsx', fileData:'#' },
+                { dept:'总务处', title:'水电检修', time:'周三 09:00-11:00', location:'宿舍区', desc:'停水通知', week:15 },
+                { dept:'办公室', title:'行政协调会', time:'周四 13:30-15:00', location:'办公楼501', desc:'校办牵头', week:15, fileName:'议程.doc', fileData:'#' },
+                { dept:'安稳办', title:'消防演练', time:'周五 15:00-17:00', location:'操场', desc:'全体师生', week:15 },
+                { dept:'智创中心', title:'大创项目申报', time:'周五 09:00-11:30', location:'创新楼203', desc:'导师指导', week:15, fileName:'申报指南.pdf', fileData:'#' },
+                { dept:'办公室', title:'公文流转培训', time:'周三 10:00-11:30', location:'会议室A', desc:'各部门秘书', week:15 },
+                { dept:'安稳办', title:'校园巡逻安排', time:'每天 08:00-20:00', location:'校门口', desc:'', week:14 }
+            ];
+            samples.forEach(s => {
+                allEvents.push({ ...s, id: Date.now() + Math.random() * 1000, fileData: s.fileData ? '#示例链接' : null });
+            });
+            updateUI();
+        }
+
+        function switchRole(role) {
+            currentRole = role;
+            globalRoleDisplay.innerText = `当前部门：${role} ${role === '办公室' ? '（可后台+审核附件）' : '（只读）'}`;
+            renderAdminPanelByRole();
+            renderMasterTable(); // 重新渲染总表以控制附件链接是否可点
+        }
+
+        // 绑定事件
+        deptBtns.forEach(btn => {
+            btn.addEventListener('click', () => setActiveDept(btn.dataset.dept));
+        });
+        addBtn.addEventListener('click', addEvent);
+        prevBtn.addEventListener('click', goPrev);
+        nextBtn.addEventListener('click', goNext);
+        roleSwitcher.addEventListener('change', (e) => switchRole(e.target.value));
+
+        // 初始化
+        if (allEvents.length === 0) addSamples();
+        setActiveDept('教务处');
+        updateWeekUI();
+        renderMasterTable();
+        switchRole('办公室');
+    })();
+</script>
+</body>
+</html>
